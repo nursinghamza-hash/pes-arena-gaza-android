@@ -8,6 +8,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewClientCompat
@@ -21,6 +22,10 @@ class MainActivity : AppCompatActivity() {
 
         webView = WebView(this)
         webView.setBackgroundColor(Color.rgb(7, 17, 31))
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+        webView.isVerticalScrollBarEnabled = false
+        webView.isHorizontalScrollBarEnabled = false
+        webView.overScrollMode = View.OVER_SCROLL_NEVER
 
         val assetLoader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
@@ -41,13 +46,32 @@ class MainActivity : AppCompatActivity() {
             databaseEnabled = true
             allowFileAccess = false
             allowContentAccess = true
+            allowFileAccessFromFileURLs = false
+            allowUniversalAccessFromFileURLs = false
             mediaPlaybackRequiresUserGesture = false
+            javaScriptCanOpenWindowsAutomatically = false
+            setSupportZoom(false)
+            builtInZoomControls = false
+            displayZoomControls = false
+            loadsImagesAutomatically = true
             cacheMode = WebSettings.LOAD_DEFAULT
-            userAgentString = "$userAgentString PESArenaGazaAndroid/1.0"
+            userAgentString = "$userAgentString PESArenaGazaAndroid/1.1"
         }
 
         setContentView(webView)
         webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+    }
+
+    override fun onPause() {
+        webView.onPause()
+        webView.pauseTimers()
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        webView.resumeTimers()
+        webView.onResume()
     }
 
     override fun onBackPressed() {
@@ -55,6 +79,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        webView.stopLoading()
+        webView.loadUrl("about:blank")
+        webView.clearHistory()
+        webView.removeAllViews()
         webView.destroy()
         super.onDestroy()
     }
